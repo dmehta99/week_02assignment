@@ -1,0 +1,107 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "vSYIlvPp4Nph"
+      },
+      "source": [
+        "Design a dictionary data structure for the following scenario:\n",
+        "\n",
+        "In this data structure, we’re dealing with families that might have multiple people.\n",
+        "Each family has a family name that is unique\n",
+        "Each family has a list of family members in it\n",
+        "Each family member has a first name, a last name, and and age\n",
+        "\n",
+        "Create a dictionary for four fictitious families each with at least three family members, then compute and output the average age for each family.\n",
+        "\n",
+        "What data types do we need for each requirement?"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 11,
+      "metadata": {
+        "id": "VtYJtj4R4Npn",
+        "outputId": "f82956ee-16cc-4c36-8449-6921fcac5b4c",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Average age for the green family: 30.00\n",
+            "Average age for the Johnson family: 35.00\n",
+            "Average age for the Butler family: 45.75\n",
+            "Average age for the Rothchild family: 33.75\n"
+          ]
+        }
+      ],
+      "source": [
+        "\n",
+        "### START SOLUTION\n",
+        "families = {\n",
+        "    \"green\": [\n",
+        "        {\"first name\": \"John\", \"last name\" : \"green\", \"age\": 45},\n",
+        "        {\"first name\": \"Jane\", \"last name\" : \"green\", \"age\": 42},\n",
+        "        {\"first name\": \"Emily\",  \"last name\" : \"green\",\"age\": 18},\n",
+        "        {\" first name\": \"Michael\",  \"last name\" : \"green\",\"age\": 15}\n",
+        "    ],\n",
+        "    \"Johnson\": [\n",
+        "        {\"name\": \"Reena\",  \"last name\" : \"Johnson\", \"age\": 50},\n",
+        "        {\"name\": \"Conroy\",  \"last name\" : \"Johnson\", \"age\": 43},\n",
+        "        {\"name\": \"Sophia\",  \"last name\" : \"Johnson\", \"age\": 27},\n",
+        "        {\"name\": \"Julia\",  \"last name\" : \"Johnson\", \"age\": 20}\n",
+        "    ],\n",
+        "     \"Butler\": [\n",
+        "        {\"name\": \"Adam\",  \"last name\" : \"Butler\", \"age\": 65},\n",
+        "        {\"name\": \"Sheila\",  \"last name\" : \"Butler\", \"age\": 52},\n",
+        "        {\"name\": \"Ana\",  \"last name\" : \"Butler\", \"age\": 36},\n",
+        "        {\"name\": \"Emma\",  \"last name\" : \"Butler\", \"age\": 30}\n",
+        "    ],\n",
+        "     \"Rothchild\": [\n",
+        "        {\"name\": \"Harry\",  \"last name\" : \"Rothchild\", \"age\": 47},\n",
+        "        {\"name\": \"Meghan\",  \"last name\" : \"Rothchild\", \"age\": 43},\n",
+        "        {\"name\": \"William\",  \"last name\" : \"Rothchild\", \"age\": 26},\n",
+        "        {\"name\": \"Kate\",  \"last name\" : \"Rothchild\", \"age\": 19}\n",
+        "    ]\n",
+        "\n",
+        "}\n",
+        "\n",
+        "\n",
+        "for family_name, members in families.items():\n",
+        "    total_age = sum(member['age'] for member in members)\n",
+        "    average_age = total_age / len(members)\n",
+        "    print(f\"Average age for the {family_name} family: {average_age:.2f}\")\n",
+        "\n",
+        "### END SOLUTION"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "gCTRT7L76Og7"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "language_info": {
+      "name": "python"
+    },
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
