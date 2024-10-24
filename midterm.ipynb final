@@ -1,0 +1,391 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/dmehta99/week_02assignment/blob/main/midterm.ipynb%20final\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "WICSQ0r29LYi"
+      },
+      "source": [
+        "### Mid-term for HDS5210\n",
+        "\n",
+        "Your supervisor is concerned about 4-year survival risks for COPD. She has asked for you to do some analysis using a new metric, BODE. BODE is an improvement on a previous metric and promises to provide insight on survival risks.\n",
+        "\n",
+        "BODE is defined here. https://www.mdcalc.com/calc/3916/bode-index-copd-survival#evidence\n",
+        "\n",
+        "Your assignment is to create a BODE calculation, use it to calculate BODE scores and BODE survival rates for a group of patients. Then we want to evaluate the average BODE scores and BODE survival rates for each area hospital.\n",
+        "\n",
+        "Your patient input file will have the following columns:\n",
+        "NAME,SSN,LANGUAGE,JOB,HEIGHT_M,WEIGHT_KG,fev_pct,dyspnea_description,distance_in_meters,hospital\n",
+        "\n",
+        "BODE calculations require a BMI value, so you will have to create a function for it.\n",
+        "\n",
+        "Your output should be in the form of two CSV files, patient_output.csv and hospital_output.csv.\n",
+        "\n",
+        "Patient_output will have the following columns:\n",
+        "NAME,BODE_SCORE,BODE_RISK,HOSPITAL\n",
+        "\n",
+        "Hospital output will have the following columns:\n",
+        "HOSPITAL_NAME, COPD_COUNT, PCT_OF_COPD_CASES_OVER_BEDS, AVG_SCORE, AVG_RISK\n",
+        "\n",
+        "Each function you create should have documentation and a suitable number of test cases. If the input data could be wrong, make sure to raise a Value Error.\n",
+        "\n",
+        "For this assignment, use the doctest, json, and csv libraries. Pandas is not allowed for this assignment."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "vuh82d2I9LYn"
+      },
+      "outputs": [],
+      "source": [
+        "import doctest\n",
+        "import json\n",
+        "import csv"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "pJ-XDTni9LYq"
+      },
+      "source": [
+        "### Step 1: Calculate BMI"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "j4-cSDlS9LYq"
+      },
+      "outputs": [],
+      "source": [
+        "import csv\n",
+        "import doctest\n",
+        "\n",
+        "def calculate_bmi(weight_kg, height_m):\n",
+        "    \"\"\"\n",
+        "    Calculate BMI given weight in kg and height in meters.\n",
+        "\n",
+        "    Args:\n",
+        "    weight_kg (float): The weight of the patient in kilograms.\n",
+        "    height_m (float): The height of the patient in meters.\n",
+        "\n",
+        "    Returns:\n",
+        "    float: The calculated BMI value.\n",
+        "\n",
+        "    Raises:\n",
+        "    ValueError: If height is less than or equal to zero.\n",
+        "\n",
+        "    Examples:\n",
+        "    >>> calculate_bmi(70, 1.75)\n",
+        "    22.86\n",
+        "    >>> calculate_bmi(90, 1.8)\n",
+        "    27.78\n",
+        "    >>> calculate_bmi(50, 1.6)\n",
+        "    19.53\n",
+        "    >>> calculate_bmi(80, 0)\n",
+        "    Traceback (most recent call last):\n",
+        "    ...\n",
+        "    ValueError: Height must be greater than zero\n",
+        "    \"\"\"\n",
+        "    if height_m <= 0:\n",
+        "        raise ValueError(\"Height must be greater than zero\")\n",
+        "\n",
+        "    bmi = weight_kg / (height_m ** 2)\n",
+        "    return round(bmi, 2)\n",
+        "\n",
+        "if __name__ == \"__main__\":\n",
+        "    doctest.testmod()\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "xR9_yD0v9LYr"
+      },
+      "source": [
+        "### Step 2: Calculate BODE Score"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "nJmPQMA49LYr"
+      },
+      "outputs": [],
+      "source": [
+        "def calculate_bode_score(fev_pct, dyspnea_description, distance_meters, bmi):\n",
+        "    \"\"\"\n",
+        "    Calculates the total BODE score.\n",
+        "\n",
+        "    Args:\n",
+        "        fev_pct (float): The FEV1 percentage predicted.\n",
+        "        dyspnea_description (str): The dyspnea description.\n",
+        "        distance_meters (float): The distance walked in 6 minutes.\n",
+        "        bmi (float): The Body Mass Index.\n",
+        "\n",
+        "    Returns:\n",
+        "        int: The total BODE score.\n",
+        "    \"\"\"\n",
+        "    # Calculate FEV1 score\n",
+        "    fev_score = 0\n",
+        "    if fev_pct >= 65:\n",
+        "        fev_score = 0\n",
+        "    elif 50 <= fev_pct < 65:\n",
+        "        fev_score = 1\n",
+        "    elif 36 <= fev_pct < 50:\n",
+        "        fev_score = 2\n",
+        "    else:\n",
+        "        fev_score = 3\n",
+        "\n",
+        "    # Calculate BMI score\n",
+        "    bmi_score = 1 if bmi < 21 else 0\n",
+        "\n",
+        "    # Map dyspnea description to score\n",
+        "    dyspnea_score_map = {\n",
+        "        \"WHEN HURRYING\": 1,\n",
+        "        \"STOPS AFTER A FEW MINUTES\": 2,\n",
+        "        \"BREATHLESS WHEN DRESSING\": 3\n",
+        "    }\n",
+        "    dyspnea_score = dyspnea_score_map.get(dyspnea_description.upper(), 0)\n",
+        "\n",
+        "    # Calculate distance walked score\n",
+        "    if distance_meters >= 350:\n",
+        "        distance_score = 0\n",
+        "    elif 250 <= distance_meters < 350:\n",
+        "        distance_score = 1\n",
+        "    elif 150 <= distance_meters < 250:\n",
+        "        distance_score = 2\n",
+        "    else:\n",
+        "        distance_score = 3\n",
+        "\n",
+        "    # Total BODE score\n",
+        "    total_bode_score = fev_score + bmi_score + dyspnea_score + distance_score\n",
+        "    return total_bode_score\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "n7i36II09LYs"
+      },
+      "source": [
+        "### Step 3: Calculate BODE Risk"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "PPiKCEK89LYs"
+      },
+      "outputs": [],
+      "source": [
+        "def calculate_bode_risk(bode_score):\n",
+        "    \"\"\"\n",
+        "    Calculate the BODE risk based on the BODE score.\n",
+        "\n",
+        "    Args:\n",
+        "    bode_score (int): The BODE score (0 to 10).\n",
+        "\n",
+        "    Returns:\n",
+        "    float: The BODE risk as a percentage.\n",
+        "\n",
+        "    Raises:\n",
+        "    ValueError: If the BODE score is out of range.\n",
+        "\n",
+        "    Examples:\n",
+        "    >>> calculate_bode_risk(2)\n",
+        "    90\n",
+        "    >>> calculate_bode_risk(4)\n",
+        "    75\n",
+        "    >>> calculate_bode_risk(6)\n",
+        "    50\n",
+        "    >>> calculate_bode_risk(8)\n",
+        "    30\n",
+        "    >>> calculate_bode_risk(11)\n",
+        "    Traceback (most recent call last):\n",
+        "    ...\n",
+        "    ValueError: BODE score must be between 0 and 10\n",
+        "    \"\"\"\n",
+        "    if bode_score < 0 or bode_score > 10:\n",
+        "        raise ValueError(\"BODE score must be between 0 and 10\")\n",
+        "\n",
+        "    if 0 <= bode_score <= 2:\n",
+        "        return 90  # Low risk, high survival\n",
+        "    elif 3 <= bode_score <= 4:\n",
+        "        return 75  # Moderate risk\n",
+        "    elif 5 <= bode_score <= 6:\n",
+        "        return 50  # High risk\n",
+        "    elif 7 <= bode_score <= 10:\n",
+        "        return 30  # Very high risk (low survival)\n",
+        "\n",
+        "if __name__ == \"__main__\":\n",
+        "    doctest.testmod()\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "F-P815mk9LYs"
+      },
+      "source": [
+        "### Step 4: Load Hospital Data"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "QfbXQ7f89LYt",
+        "outputId": "55367788-8e41-48b9-a540-b2fc64637768"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "{'BJC': 2000, 'BJC WEST COUNTY': 1000, 'MISSOURI BAPTIST': 800, 'SAINT LOUIS UNIVERSITY': 1000, \"ST.MARY'S\": 500, \"ST.LUKE'S\": 800}\n"
+          ]
+        }
+      ],
+      "source": [
+        "import json\n",
+        "\n",
+        "def load_hospital_data(json_file_path):\n",
+        "    \"\"\"\n",
+        "    Load hospital data from a JSON file.\n",
+        "\n",
+        "    Args:\n",
+        "    json_file_path (str): The path to the JSON file containing hospital data.\n",
+        "\n",
+        "    Returns:\n",
+        "    dict: A dictionary where the key is the hospital name and the value is the number of beds.\n",
+        "\n",
+        "    Raises:\n",
+        "    FileNotFoundError: If the JSON file does not exist.\n",
+        "    ValueError: If the JSON file has invalid structure or content.\n",
+        "\n",
+        "    Examples:\n",
+        "    >>> hospitals = load_hospital_data(\"/content/hospitals (1).json\")\n",
+        "    >>> hospitals[\"BJC\"]\n",
+        "    2000\n",
+        "    >>> hospitals[\"ST.LUKE'S\"]\n",
+        "    800\n",
+        "    \"\"\"\n",
+        "    try:\n",
+        "        with open(json_file_path, 'r') as f:\n",
+        "            data = json.load(f)\n",
+        "\n",
+        "        hospital_dict = {}\n",
+        "\n",
+        "        for system in data:\n",
+        "            for hospital in system['hospitals']:\n",
+        "                hospital_dict[hospital['name']] = hospital['beds']\n",
+        "\n",
+        "        return hospital_dict\n",
+        "\n",
+        "    except FileNotFoundError:\n",
+        "        raise FileNotFoundError(f\"File not found: {json_file_path}\")\n",
+        "    except json.JSONDecodeError:\n",
+        "        raise ValueError(\"Invalid JSON file structure or content\")\n",
+        "\n",
+        "# Example usage with the correct file path\n",
+        "if __name__ == \"__main__\":\n",
+        "    # Use the correct path based on your system\n",
+        "    json_file_path = \"/content/hospitals (1).json\"\n",
+        "    hospitals = load_hospital_data(json_file_path)\n",
+        "    print(hospitals)\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "H7eO5oF99LYt"
+      },
+      "source": [
+        "### Step 5: Main business logic\n",
+        "\n",
+        "Call BODE Score, BODE Risk functions for each patient.\n",
+        "\n",
+        "For each hospital, calculate Avg BODE score and Avg BODE risk and count the number of cases for each hospital."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "XPKC11ig9LYu",
+        "outputId": "d4698bc0-510c-45c1-a55d-f86e0c47a2c6"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Directory created or exists: ./output/\n",
+            "Writing patient output to ./output/patient_output.csv\n",
+            "Writing hospital output to ./output/hospital_output.csv\n"
+          ]
+        }
+      ],
+      "source": [
+        "import os\n",
+        "import csv\n",
+        "import json\n",
+        "\n",
+        "# Ensure output directory exists\n",
+        "output_directory = './output/'  # Use local directory if necessary\n",
+        "if not os.path.exists(output_directory):\n",
+        "    os.makedirs(output_directory)\n",
+        "print(f\"Directory created or exists: {output_directory}\")\n",
+        "\n",
+        "# Set file paths\n",
+        "patient_file_path = './patient.csv'  # Adjust this to a valid path for patient file\n",
+        "hospital_file_path = './hospitals.json'  # Adjust this to a valid path for hospital file\n",
+        "patient_output_file = os.path.join(output_directory, 'patient_output.csv')\n",
+        "hospital_output_file = os.path.join(output_directory, 'hospital_output.csv')\n",
+        "\n",
+        "print(f\"Writing patient output to {patient_output_file}\")\n",
+        "print(f\"Writing hospital output to {hospital_output_file}\")\n",
+        "\n",
+        "# Function to process files (use the previous provided code for calculations)"
+      ]
+    }
+  ],
+  "metadata": {
+    "language_info": {
+      "name": "python"
+    },
+    "colab": {
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
